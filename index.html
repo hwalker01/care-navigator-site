@@ -124,8 +124,10 @@
           <p class="hint">Nonprofit hospitals must post their financial assistance policy online. If you have it, enter its income limits and we'll use them instead of the state minimum.</p>
           <div class="grid"><label>Free care up to (% of poverty line)<input id="hospFree" type="number" min="0" placeholder="e.g. 200"></label>
           <label>Discounts up to (% of poverty line)<input id="hospDiscount" type="number" min="0" placeholder="e.g. 400"></label></div></details>
-        <label class="check"><input type="checkbox" id="inCollections"> This bill has been sent to collections</label>
-        <label class="check"><input type="checkbox" id="hasRxCosts"> I also have expensive prescriptions</label>
+        <fieldset class="check-group"><legend>Check any that apply (optional)</legend>
+          <label class="check"><input type="checkbox" id="inCollections"> This bill has been sent to collections</label>
+          <label class="check"><input type="checkbox" id="hasRxCosts"> I also have expensive prescriptions</label>
+        </fieldset>
       </div>
       <div class="actions">
         <button class="ghost" id="loadExample">Load hypothetical example</button>
