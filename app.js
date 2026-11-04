@@ -167,6 +167,8 @@ function renderResults() {
       deadlines: dls, docs: r.documents };
   });
   $("billToFight").onclick = function () { showView("fight"); };
+  // The last step: get the hospital's own application and fill it out (apply.js).
+  if (typeof ApplyStep !== "undefined") { $("results").insertAdjacentHTML("beforeend", ApplyStep.html(a, r)); ApplyStep.wire($("results"), a, r); }
   $("results").insertAdjacentHTML("beforeend", helpfulBox("fbBill")); wireHelpful("fbBill", "Hospital bill");
 }
 

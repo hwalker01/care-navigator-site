@@ -67,7 +67,7 @@ var NavLogic = (function () {
   }
 
   function documents(a) {
-    var d = ["Photo ID", "Every bill or statement from the hospital (with account number)", "Proof of address (lease, utility bill)"];
+    var d = ["Photo identification (like a driver's license)", "Every bill or statement from the hospital (with account number)", "Proof of address (lease, utility bill)"];
     var kinds = (a.incomeSources || []).map(function (s) { return s.kind; });
     if (kinds.indexOf("wages") >= 0) d.push("Recent pay stubs for every working household member (check the hospital form for how many months)");
     if (kinds.indexOf("self") >= 0) d.push("Most recent federal tax return, including Schedule C");
