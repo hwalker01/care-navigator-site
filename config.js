@@ -19,8 +19,8 @@ var NAV_CONFIG = {
   // See DEPLOY.md, "Vercel + Supabase + Umami". These values are public by design: they end up in every visitor's browser.
   SITE_SERVICES: {
     // Supabase: only the anonymous "Was this helpful?" answers (tab, yes/no, fixed reason, day). See supabase/feedback.sql.
-    supabaseUrl: "",       // e.g. "https://abcdefgh.supabase.co"  (Project Settings → API → Project URL)
-    supabaseAnonKey: "",   // the "anon" / "publishable" key, NEVER the service_role / secret key
+    supabaseUrl: "https://islogcsodswrtanzpwhj.supabase.co",       // e.g. "https://abcdefgh.supabase.co"  (Project Settings → API → Project URL)
+    supabaseAnonKey: "sb_publishable_yG-jz0Uc9DwmvnBzYr2v1g_KhhnFsGs",   // the "anon" / "publishable" key, NEVER the service_role / secret key
     // Umami: cookie-free page-view counts. No personal data, no cookie banner needed.
     umamiWebsiteId: "ae2cfadd-2813-4950-a53b-26d790f1a2cb",    // Umami → Settings → Websites → Edit → Website ID
     umamiScript: "https://cloud.umami.is/script.js",
