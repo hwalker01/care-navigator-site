@@ -13,7 +13,8 @@ process owner to agree in writing before the harness touches real data.
 | Name, address, DOB (only on the Amgen form helper) | To fill the official PDF | Stays in the browser. The PDF is made on the device; nothing is uploaded |
 | Saved 501(r) applications (Hospital dashboard) | Demo of hospital tracking | `localStorage` in that one browser only. "Clear my saved data" deletes it |
 | My plan (saved plans, deadlines, checklists) | So people can come back to their plan | `localStorage` (key `cn_plan_v1`) in that browser only. "Remove" deletes an item |
-| "Was this helpful?" answers | Count usefulness during deploy week | `localStorage` (key `cn_feedback_v1`): only which tab, yes/no, an optional reason from a fixed list, and the date. Never what the person typed. Staff can download totals or clear them on the Hospital dashboard |
+| "Was this helpful?" answers | Count usefulness during deploy week | `localStorage` (key `cn_feedback_v1`): only which tab, yes/no, an optional reason from a fixed list, and the date. Never what the person typed. Staff can download totals or clear them on the Hospital dashboard. **On the Vercel site**, the same answer (tab, yes/no, fixed reason) is also added to a Supabase table so the team sees totals from every visitor; the database adds the day. No IP, user ID or time of day is stored, and the public key can only add rows, not read them (`supabase/feedback.sql`) |
+| Page visits (Umami analytics) | Know how many people visit, from which kind of device and country | Umami Cloud counts page views without cookies and without storing IP addresses. The address is counted without its `?` or `#` part, so nothing typed is ever sent. Browsers with "Do Not Track" on are not counted. Off unless set in `config.js` |
 
 **Not collected:** Social Security numbers, insurance member IDs, medical records, payment cards. The app never
 submits anything to a hospital or drug company. The patient (or a counselor sitting with them) does.

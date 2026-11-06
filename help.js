@@ -1,5 +1,6 @@
 // "Talk to a person" (on every tab) and "Was this helpful?" (after every result).
-// Phone numbers were checked on each organization's official page (see HELP_CHECKED). Feedback stays on this device.
+// Phone numbers were checked on each organization's official page (see HELP_CHECKED). Feedback is saved on this device;
+// if Supabase is set up in config.js, the same anonymous answer (tab, yes/no, fixed reason, day) is also counted there.
 
 var HELP_CHECKED = "2026-10-21";
 var HELP_LINES = [
@@ -23,9 +24,33 @@ var Feedback = (function () {
   var KEY = "cn_feedback_v1";
   function all() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } }
   // Only the tab, yes/no, an optional reason and the date. Never what the person typed.
+  function today() { var d = new Date(); return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
+  // Shared counts (Supabase; the database adds the day). Insert-only: the anon key can add a row but never read or change one.
+  // A "no" reason is sent as its own row, so nothing ever has to be updated. Fails silently: the local copy still counts.
+  function remote() {
+    var c = (typeof NAV_CONFIG !== "undefined" && NAV_CONFIG.SITE_SERVICES) || {};
+    return c.supabaseUrl && c.supabaseAnonKey && typeof fetch === "function" ? c : null;
+  }
+  function headers(c) {
+    var h = { "Content-Type": "application/json", apikey: c.supabaseAnonKey, Prefer: "return=minimal" };
+    if (/^eyJ/.test(c.supabaseAnonKey)) h.Authorization = "Bearer " + c.supabaseAnonKey;  // older "anon" keys are JWTs; new publishable keys go in apikey only
+    return h;
+  }
+  function send(row) {
+    var c = remote(); if (!c) return;
+    try {
+      fetch(c.supabaseUrl.replace(/\/+$/, "") + "/rest/v1/feedback", {
+        method: "POST", keepalive: true,
+        headers: headers(c),
+        body: JSON.stringify(row)
+      }).catch(function () {});
+    } catch (e) {}
+  }
   function record(area, helpful, reason) {
-    var a = all(); a.push({ area: area, helpful: helpful, reason: reason || "", date: (function (d) { return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); })(new Date()) });
+    var day = today(), a = all(); a.push({ area: area, helpful: helpful, reason: reason || "", date: day });
     try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {}
+    send({ area: area, helpful: !!helpful });
+    if (reason) send({ area: area, reason: reason });
   }
   function summary() {
     var by = {};
@@ -36,9 +61,14 @@ var Feedback = (function () {
     });
     return by;
   }
-  function setLastReason(r) { var a = all(); if (a.length) { a[a.length - 1].reason = r; try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {} } }
+  function setLastReason(r) {
+    var a = all(); if (!a.length) return;
+    var last = a[a.length - 1]; last.reason = r;
+    try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {}
+    send({ area: last.area, reason: r });
+  }
   function clear() { try { localStorage.removeItem(KEY); } catch (e) {} }
-  return { all: all, record: record, setLastReason: setLastReason, summary: summary, clear: clear, KEY: KEY };
+  return { all: all, record: record, setLastReason: setLastReason, summary: summary, clear: clear, shared: function () { return !!remote(); }, KEY: KEY };
 })();
 
 if (typeof document !== "undefined") (function () {
@@ -69,7 +99,7 @@ if (typeof document !== "undefined") (function () {
   var NO_REASONS = ["Confusing", "Didn't fit my situation", "Missing information", "Something looked wrong"];
   window.helpfulBox = function (id) {
     return "<div class='helpful no-print' id='" + id + "'><span>Was this helpful?</span> <button type='button' class='ghost' data-h='yes'>👍 Yes</button> <button type='button' class='ghost' data-h='no'>👎 No</button>" +
-      "<span class='hint'> · saved only on this device</span><div class='helpful-why hidden'>" +
+      "<span class='hint'>" + (Feedback.shared() ? " · anonymous: only your yes/no is counted, never what you typed" : " · saved only on this device") + "</span><div class='helpful-why hidden'>" +
       NO_REASONS.map(function (r) { return "<button type='button' class='ghost' data-r='" + esc(r) + "'>" + esc(r) + "</button>"; }).join(" ") + "</div></div>";
   };
   window.wireHelpful = function (id, area) {
