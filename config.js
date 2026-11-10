@@ -24,7 +24,9 @@ var NAV_CONFIG = {
     // Umami: cookie-free page-view counts. No personal data, no cookie banner needed.
     umamiWebsiteId: "ae2cfadd-2813-4950-a53b-26d790f1a2cb",    // Umami → Settings → Websites → Edit → Website ID
     umamiScript: "https://cloud.umami.is/script.js",
-    umamiDomains: "care-navigator-site.vercel.app"       // only count visits on these hostnames, e.g. "care-navigator.vercel.app" (empty = everywhere)
+    umamiDomains: "care-navigator-site.vercel.app",      // only count visits on these hostnames, e.g. "care-navigator.vercel.app" (empty = everywhere)
+    // Vercel Web Analytics: cookie-free page-view counts. Turn it on in Vercel → project → Analytics → Enable first.
+    vercelAnalyticsHost: "care-navigator-site.vercel.app"  // only loads on this hostname (empty = off)
   }
 };
 

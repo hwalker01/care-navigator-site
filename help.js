@@ -1,6 +1,7 @@
 // "Talk to a person" (on every tab) and "Was this helpful?" (after every result).
 // Phone numbers were checked on each organization's official page (see HELP_CHECKED). Feedback is saved on this device;
 // if Supabase is set up in config.js, the same anonymous answer (tab, yes/no, fixed reason, day) is also counted there.
+// Every result shown is also counted on its own (tab and day only, table "usage"), and sent to Umami as a "result" event.
 
 var HELP_CHECKED = "2026-10-21";
 var HELP_LINES = [
@@ -36,10 +37,10 @@ var Feedback = (function () {
     if (/^eyJ/.test(c.supabaseAnonKey)) h.Authorization = "Bearer " + c.supabaseAnonKey;  // older "anon" keys are JWTs; new publishable keys go in apikey only
     return h;
   }
-  function send(row) {
+  function send(row, table) {
     var c = remote(); if (!c) return;
     try {
-      fetch(c.supabaseUrl.replace(/\/+$/, "") + "/rest/v1/feedback", {
+      fetch(c.supabaseUrl.replace(/\/+$/, "") + "/rest/v1/" + (table || "feedback"), {
         method: "POST", keepalive: true,
         headers: headers(c),
         body: JSON.stringify(row)
@@ -68,7 +69,13 @@ var Feedback = (function () {
     send({ area: last.area, reason: r });
   }
   function clear() { try { localStorage.removeItem(KEY); } catch (e) {} }
-  return { all: all, record: record, setLastReason: setLastReason, summary: summary, clear: clear, shared: function () { return !!remote(); }, KEY: KEY };
+  // A result was shown on this tab. Counts it with no click: Supabase gets only {area} (the database adds the day),
+  // Umami gets a "result" event with the tab name. Nothing the person typed is ever included.
+  function shown(area) {
+    send({ area: area }, "usage");
+    try { if (typeof window !== "undefined" && window.umami && typeof window.umami.track === "function") window.umami.track("result", { tab: area }); } catch (e) {}
+  }
+  return { all: all, record: record, shown: shown, setLastReason: setLastReason, summary: summary, clear: clear, shared: function () { return !!remote(); }, KEY: KEY };
 })();
 
 if (typeof document !== "undefined") (function () {
@@ -104,6 +111,7 @@ if (typeof document !== "undefined") (function () {
   };
   window.wireHelpful = function (id, area) {
     var box = document.getElementById(id); if (!box) return;
+    if (!box.dataset.counted) { box.dataset.counted = "1"; Feedback.shown(area); }   // once per result, no click needed
     box.querySelector("[data-h='yes']").onclick = function () { Feedback.record(area, true); box.innerHTML = "<span>Thanks! Glad it helped.</span>"; };
     box.querySelector("[data-h='no']").onclick = function () {
       Feedback.record(area, false);                       // a "no" counts even without a reason
